@@ -2,8 +2,7 @@ FROM python:3.11-slim
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    PLCSIM_DATA_DIR=/var/lib/plc-sim \
-    PLCSIM_CSV=/opt/plc-sim/data/szlab_plc_0810.csv
+    PLCSIM_DATA_DIR=/var/lib/plc-sim
 
 WORKDIR /opt/plc-sim
 
@@ -16,8 +15,7 @@ RUN python -m pip install --no-cache-dir . \
 
 USER 10001:10001
 
-EXPOSE 18765 4855
+EXPOSE 4855 4856
 
 ENTRYPOINT ["plc-sim"]
-CMD ["gui", "--host", "0.0.0.0", "--port", "18765", "--no-open"]
-
+CMD ["iccas", "--station", "postprocessing", "--host", "0.0.0.0", "--timing-mode", "process", "--time-scale", "60", "--seed-process-recipe", "--filter-extensions", "--device-model", "--device-state-dir", "/var/lib/plc-sim/iccas-devices"]

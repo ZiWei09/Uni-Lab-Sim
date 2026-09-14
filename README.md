@@ -1,88 +1,25 @@
-# Uni-Lab-Sim
+# ICCAS 双站仿真
 
-<p align="center">
-  <img src="./assets/brand/uni-lab-sim-logo.png" alt="Uni-Lab-Sim" width="260">
-</p>
+本分支只保留 ICCAS 后处理双站仿真、它的运行依赖以及相关交付物。
 
-<p align="center">面向 Uni-Lab OS 的工业协议与实验室联调仿真底座</p>
+- 主程序：[`PLC-Sim/`](./PLC-Sim/)
+- 设备接口包：[`deploy/iccas-devices/`](./deploy/iccas-devices/)
+- Prosys 导出：[`deploy/prosys-iccas/`](./deploy/prosys-iccas/)
+- 完整保留包：[`deploy/后处理双站仿真保留包_2026-09-14/`](./deploy/后处理双站仿真保留包_2026-09-14/)
 
-Uni-Lab-Sim 是面向 Uni-Lab 设备接入、工业协议和实验室联调的仿真工具仓库。每个一级目录都是边界清晰、可以独立安装、运行和测试的应用。
-
-## 应用
-
-| 应用 | 协议/场景 | 主要能力 |
-| --- | --- | --- |
-| [`PLC-Sim`](./PLC-Sim/) | OPC UA、PTLC、SZLab | CSV 变量表、PLC 动作与传感器仿真、握手代理、设备包运行时和 Web GUI |
-| [`Modbus-Sim`](./Modbus-Sim/) | Modbus TCP、RTU RS-485、RTU RS-232、ASCII | 多从站设备模型、CSV 寄存器表、虚拟串口、实时读写、报文监视和 Web GUI |
-
-## 快速开始
-
-两个应用当前均要求 Python 3.11.x。建议分别创建虚拟环境，避免依赖和运行配置相互影响。
-
-### PLC-Sim
+快速启动（macOS/Linux）：
 
 ```bash
-python3.11 -m venv PLC-Sim/.venv
-PLC-Sim/.venv/bin/python -m pip install ./PLC-Sim
-PLC-Sim/.venv/bin/plc-sim
+cd PLC-Sim
+./start_iccas_devices.command
 ```
 
-Windows、macOS 启动器以及 PTLC/SZLab 运行方式见 [`PLC-Sim/README.md`](./PLC-Sim/README.md)。
-
-### Modbus-Sim
+另开终端启动 HMI：
 
 ```bash
-python3.11 -m venv Modbus-Sim/.venv
-Modbus-Sim/.venv/bin/python -m pip install ./Modbus-Sim
-Modbus-Sim/.venv/bin/modbus-sim
+cd PLC-Sim
+./start_iccas_hmi.command
 ```
 
-默认 GUI 地址为 <http://127.0.0.1:18865>。Windows 可运行 `Modbus-Sim/start_gui.bat`，macOS 可双击 `Modbus-Sim/start_gui.command`，Linux/macOS 终端可运行 `Modbus-Sim/start_gui.sh`。
-
-Modbus-Sim 使用同一份设备模型支持四种传输方式：
-
-- Modbus TCP
-- Modbus RTU over RS-485
-- Modbus RTU over RS-232
-- Modbus ASCII
-
-GUI 采用多文档寄存器工作台和设备树，可配置传输参数、从站、线圈、离散输入、保持寄存器及输入寄存器，并查看真实 Tx/Rx 报文。寄存器地址表支持 CSV 导入导出；Linux/macOS 可直接创建临时 PTY 串口对，Windows 安装包可选内置 com0com，并在安装驱动和管理端口对时按需请求 UAC。完整配置格式、无界面 CLI、安装包和串口说明见 [`Modbus-Sim/README.md`](./Modbus-Sim/README.md)。
-
-## 仓库结构
-
-```text
-Uni-Lab-Sim/
-├── PLC-Sim/       # OPC UA 与实验室 PLC 仿真
-├── Modbus-Sim/    # Modbus 从站与串口/TCP 仿真
-└── .github/       # 各应用独立 CI
-```
-
-## 品牌资源
-
-仓库主页使用 `assets/brand/uni-lab-sim-logo.png` 作为唯一权威 Logo 源图。PLC-Sim 与
-Modbus-Sim 的 GUI 顶栏、浏览器 favicon、启动图以及原生安装包图标均由该源图确定性
-派生，并随各自 Python 包一起发布。需要重新生成派生资源时，在仓库根目录执行：
-
-```bash
-python3 tools/generate_brand_assets.py
-```
-
-该命令需要本机安装 ImageMagick；不会改写权威源图。
-
-## 开发验证
-
-```bash
-PLC-Sim/.venv/bin/python -m pytest PLC-Sim
-
-python3.11 -m venv Modbus-Sim/.venv
-Modbus-Sim/.venv/bin/python -m pip install -e './Modbus-Sim[test]'
-Modbus-Sim/.venv/bin/python -m pytest Modbus-Sim
-```
-
-Modbus-Sim 的自动化测试包含真实 TCP 客户端往返；POSIX 环境还会通过内置 PTY 串口对验证 RTU RS-485、RTU RS-232 和 ASCII 帧。Windows 的虚拟 COM 管理由 com0com 提供。虚拟串口测试不等同于真实串口电气层验收，终端电阻、偏置、方向控制、电平和线序仍需在物理硬件上确认。
-
-## 边界
-
-- 本仓库负责设备和工业协议仿真，不承担 Uni-Lab OS 的工作流调度、物料/库位权威状态或机器人运动控制。
-- `PLC-Sim` 与 `Modbus-Sim` 不通过源码路径互相导入；配置、依赖、CLI 和测试保持独立。
-- 默认 GUI 面向本机和可信实验室网络，不包含公网鉴权能力。
+喷雾站 HMI：<http://127.0.0.1:18866/spray.html>
+过滤站 HMI：<http://127.0.0.1:18866/filter.html>

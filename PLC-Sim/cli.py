@@ -1,4 +1,4 @@
-"""Single installed command for every PLC-Sim runtime mode."""
+"""Installed command for the ICCAS simulation runtimes."""
 
 from __future__ import annotations
 
@@ -9,27 +9,21 @@ from typing import Optional, Sequence
 
 
 COMMANDS = {
-    "gui": "gui.backend",
-    "server": "server",
-    "szlab-handshake": "szlab_handshake_agent",
-    "ptlc-handshake": "ptlc_handshake_agent",
-    "handshake": "szlab_handshake_agent",  # 兼容旧入口，等价于 szlab-handshake
-    "ino": "ino_mcp.cli",
+    "iccas": "iccas_sim",
+    "iccas-hmi": "iccas_hmi",
+    "iccas-prosys": "iccas_prosys",
 }
 
 
 def _usage() -> str:
     return """usage: plc-sim [command] [options]
 
-PLC-Sim installed command. With no command, starts the Web GUI.
+ICCAS simulator command. With no command, starts the ICCAS OPC UA simulator.
 
 commands:
-  gui                Start the Web GUI (default)
-  server             Start the CSV-driven OPC UA Server
-  szlab-handshake    Start the SZLab Poly Studio handshake agent
-  ptlc-handshake     Start the PTLC V2 L2 handshake agent
-  handshake          Alias of szlab-handshake
-  ino                Run the optional InoProShop MCP CLI
+  iccas              Start ICCAS OPC UA simulation (default)
+  iccas-hmi          Start two station HMI panels on localhost
+  iccas-prosys       Export ICCAS NodeSets / run handshake logic on Prosys
 
 Run `plc-sim <command> --help` for command-specific options.
 """
@@ -70,7 +64,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         print(__version__)
         return 0
 
-    command = args.pop(0) if args else "gui"
+    command = args.pop(0) if args else "iccas"
     module_name = COMMANDS.get(command)
     if module_name is None:
         print(f"plc-sim: unknown command: {command}", file=sys.stderr)

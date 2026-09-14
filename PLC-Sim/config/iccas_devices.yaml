@@ -1,0 +1,404 @@
+{
+  "version": 1,
+  "stations": {
+    "spray": {
+      "actions": {
+        "A工位原料罐库位取料": {
+          "move": [
+            "rack/feed/{slot}",
+            "gripper"
+          ],
+          "parameter": "A工位原料罐号码",
+          "locks": [
+            "robot",
+            "lane/A"
+          ]
+        },
+        "A工位原料罐工作位放料": {
+          "move": [
+            "gripper",
+            "work/A/feed"
+          ],
+          "locks": [
+            "robot",
+            "lane/A"
+          ]
+        },
+        "A工位反应罐库位取料": {
+          "move": [
+            "rack/reaction/{slot}",
+            "gripper"
+          ],
+          "parameter": "A工位反应罐号码",
+          "locks": [
+            "robot",
+            "lane/A"
+          ]
+        },
+        "A工位反应罐工作位放料": {
+          "move": [
+            "gripper",
+            "work/A/reaction"
+          ],
+          "locks": [
+            "robot",
+            "lane/A"
+          ]
+        },
+        "A工位后处理雾化": {
+          "requires": [
+            "work/A/feed",
+            "work/A/reaction"
+          ],
+          "locks": [
+            "lane/A"
+          ],
+          "effect": "sprayed",
+          "result_site": "work/A/reaction"
+        },
+        "A工位搅拌桨清洗": {
+          "requires": [],
+          "locks": [
+            "lane/A"
+          ]
+        },
+        "A工位原料罐工作位取料": {
+          "move": [
+            "work/A/feed",
+            "gripper"
+          ],
+          "locks": [
+            "robot",
+            "lane/A"
+          ]
+        },
+        "A工位原料罐库位放料": {
+          "move": [
+            "gripper",
+            "rack/feed/{home}"
+          ],
+          "locks": [
+            "robot",
+            "lane/A"
+          ]
+        },
+        "A工位反应罐工作位取料": {
+          "move": [
+            "work/A/reaction",
+            "gripper"
+          ],
+          "locks": [
+            "robot",
+            "lane/A"
+          ]
+        },
+        "A工位反应罐库位放料": {
+          "move": [
+            "gripper",
+            "rack/reaction/{home}"
+          ],
+          "locks": [
+            "robot",
+            "lane/A"
+          ]
+        },
+        "B工位原料罐库位取料": {
+          "move": [
+            "rack/feed/{slot}",
+            "gripper"
+          ],
+          "parameter": "B工位原料罐号码",
+          "locks": [
+            "robot",
+            "lane/B"
+          ]
+        },
+        "B工位原料罐工作位放料": {
+          "move": [
+            "gripper",
+            "work/B/feed"
+          ],
+          "locks": [
+            "robot",
+            "lane/B"
+          ]
+        },
+        "B工位反应罐库位取料": {
+          "move": [
+            "rack/reaction/{slot}",
+            "gripper"
+          ],
+          "parameter": "B工位反应罐号码",
+          "locks": [
+            "robot",
+            "lane/B"
+          ]
+        },
+        "B工位反应罐工作位放料": {
+          "move": [
+            "gripper",
+            "work/B/reaction"
+          ],
+          "locks": [
+            "robot",
+            "lane/B"
+          ]
+        },
+        "B工位后处理雾化": {
+          "requires": [
+            "work/B/feed",
+            "work/B/reaction"
+          ],
+          "locks": [
+            "lane/B"
+          ],
+          "effect": "sprayed",
+          "result_site": "work/B/reaction"
+        },
+        "B工位搅拌桨清洗": {
+          "requires": [],
+          "locks": [
+            "lane/B"
+          ]
+        },
+        "B工位原料罐工作位取料": {
+          "move": [
+            "work/B/feed",
+            "gripper"
+          ],
+          "locks": [
+            "robot",
+            "lane/B"
+          ]
+        },
+        "B工位原料罐库位放料": {
+          "move": [
+            "gripper",
+            "rack/feed/{home}"
+          ],
+          "locks": [
+            "robot",
+            "lane/B"
+          ]
+        },
+        "B工位反应罐工作位取料": {
+          "move": [
+            "work/B/reaction",
+            "gripper"
+          ],
+          "locks": [
+            "robot",
+            "lane/B"
+          ]
+        },
+        "B工位反应罐库位放料": {
+          "move": [
+            "gripper",
+            "rack/reaction/{home}"
+          ],
+          "locks": [
+            "robot",
+            "lane/B"
+          ]
+        },
+        "移液针清洗": {
+          "requires": [],
+          "locks": [
+            "lane/A",
+            "lane/B"
+          ]
+        }
+      }
+    },
+    "filter": {
+      "actions": {
+        "原料罐仓取料": {
+          "move": [
+            "rack/feed/{slot}",
+            "gripper"
+          ],
+          "parameter": "原料罐仓取料号码PCtoPLC",
+          "locks": [
+            "robot"
+          ]
+        },
+        "原料罐工作位放料": {
+          "move": [
+            "gripper",
+            "work/feed"
+          ],
+          "locks": [
+            "robot",
+            "filter_process"
+          ]
+        },
+        "原料罐工作位取料": {
+          "move": [
+            "work/feed",
+            "gripper"
+          ],
+          "locks": [
+            "robot",
+            "filter_process"
+          ]
+        },
+        "原料罐仓放料": {
+          "move": [
+            "gripper",
+            "rack/feed/{home}"
+          ],
+          "locks": [
+            "robot"
+          ]
+        },
+        "过滤罐仓取料": {
+          "move": [
+            "rack/filter/{slot}",
+            "gripper"
+          ],
+          "parameter": "过滤罐仓取料号码PCtoPLC",
+          "locks": [
+            "robot"
+          ]
+        },
+        "过滤罐工作位放料": {
+          "move": [
+            "gripper",
+            "work/filter"
+          ],
+          "locks": [
+            "robot",
+            "filter_process"
+          ]
+        },
+        "过滤罐工作位取料": {
+          "move": [
+            "work/filter",
+            "gripper"
+          ],
+          "locks": [
+            "robot",
+            "filter_process"
+          ]
+        },
+        "过滤罐仓放料": {
+          "move": [
+            "gripper",
+            "rack/filter/{home}"
+          ],
+          "locks": [
+            "robot"
+          ]
+        },
+        "烧杯仓取料": {
+          "move": [
+            "rack/beaker/{slot}",
+            "gripper"
+          ],
+          "parameter": "烧杯仓取料号码PCtoPLC",
+          "locks": [
+            "robot"
+          ]
+        },
+        "烧杯工作位放料": {
+          "move": [
+            "gripper",
+            "work/beaker"
+          ],
+          "locks": [
+            "robot",
+            "filter_process"
+          ]
+        },
+        "烧杯工作位取料": {
+          "move": [
+            "work/beaker",
+            "gripper"
+          ],
+          "locks": [
+            "robot",
+            "filter_process"
+          ]
+        },
+        "烧杯仓放料": {
+          "move": [
+            "gripper",
+            "rack/beaker/{slot}"
+          ],
+          "locks": [
+            "robot"
+          ],
+          "parameter": "烧杯仓放料号码PCtoPLC"
+        },
+        "真空箱放料": {
+          "move": [
+            "gripper",
+            "vacuum/{slot}"
+          ],
+          "parameter": "真空箱放料号码PCtoPLC",
+          "locks": [
+            "robot",
+            "vacuum"
+          ]
+        },
+        "真空箱取料": {
+          "move": [
+            "vacuum/{slot}",
+            "gripper"
+          ],
+          "parameter": "真空箱取料号码PCtoPLC",
+          "locks": [
+            "robot",
+            "vacuum"
+          ]
+        },
+        "抽原液启动": {
+          "requires": [
+            "work/feed",
+            "work/filter",
+            "work/beaker"
+          ],
+          "locks": [
+            "filter_process"
+          ],
+          "effect": "filtered",
+          "result_site": "work/beaker"
+        },
+        "吸液针外壁清洗": {
+          "requires": [],
+          "locks": [
+            "filter_cleaner"
+          ]
+        },
+        "吸液针清洗罐清洗": {
+          "requires": [],
+          "locks": [
+            "filter_cleaner"
+          ]
+        },
+        "原液管清洗回收罐清洗": {
+          "requires": [],
+          "locks": [
+            "filter_cleaner"
+          ]
+        },
+        "过滤罐清洗": {
+          "requires": [
+            "work/filter"
+          ],
+          "locks": [
+            "filter_process",
+            "filter_cleaner"
+          ]
+        },
+        "真空箱除泡启动": {
+          "vacuum_batch": true,
+          "locks": [
+            "vacuum"
+          ],
+          "effect": "defoamed"
+        }
+      }
+    }
+  }
+}

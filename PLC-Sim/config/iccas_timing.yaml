@@ -1,0 +1,10 @@
+# Scheduling estimates only. Not a validated polyimide processing recipe.
+version: 1
+estimates:
+  transfer_s: 30
+  liquid_flow_ml_s: 10
+  atomization_cycle_s: 600
+  spray_filtration_s: 1200
+  needle_clean_s: 180
+  vacuum_pumpdown_s: 180
+  valve_settle_s: 2

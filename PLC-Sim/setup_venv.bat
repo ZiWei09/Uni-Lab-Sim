@@ -30,5 +30,5 @@ if errorlevel 1 exit /b 1
 
 echo.
 echo [OK] Environment ready: %~dp0.venv
-echo Run start_all.bat or start_gui.bat next.
+echo Run start_iccas_devices.bat next.
 endlocal

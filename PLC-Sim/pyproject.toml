@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "unilab-plc-sim"
 version = "0.2.6"
-description = "CSV-driven OPC UA Server, Web GUI, and PLC handshake simulators"
+description = "ICCAS OPC UA protocol, equipment, process timing, and HMI simulator"
 readme = "README.md"
 requires-python = ">=3.11,<3.12"
 dependencies = [
@@ -28,19 +28,14 @@ test = [
 plc-sim = "plc_sim.cli:main"
 
 [tool.setuptools]
-packages = ["plc_sim", "plc_sim.gui", "plc_sim.ino_mcp"]
-package-dir = {plc_sim = ".", "plc_sim.gui" = "gui", "plc_sim.ino_mcp" = "ino_mcp"}
+packages = ["plc_sim", "plc_sim.gui"]
+package-dir = {plc_sim = ".", "plc_sim.gui" = "gui"}
 include-package-data = false
 
 [tool.setuptools.package-data]
 plc_sim = [
   "config/*.yaml",
-  "config/ptlc_behavior/*.yaml",
   "data/*.csv",
-  "vendor/inoproshop-mcp/*.js",
-  "vendor/inoproshop-mcp/*.py",
-  "vendor/inoproshop-mcp/*.md",
-  ".env.example",
 ]
 "plc_sim.gui" = ["static/*.html", "static/*.css", "static/*.js", "static/*.png", "static/*.ico"]
 
