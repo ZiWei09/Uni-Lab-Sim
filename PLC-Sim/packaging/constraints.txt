@@ -1,9 +1,0 @@
-# Versions used to build and test the native 0.2.6 release artifacts.
-# Keep these separate from pyproject.toml so pip users retain compatible ranges.
-opcua==0.98.13
-PyYAML==6.0.3
-fastapi==0.139.2
-uvicorn==0.51.0
-pydantic==2.13.4
-PyInstaller==6.21.0
-pytest==9.1.1

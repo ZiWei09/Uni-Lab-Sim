@@ -1,7 +1,0 @@
-Name,EnglishName,NodeType,DataType,NodeLanguage,NodeId
-测试变量_布尔,Demo_Bool,VARIABLE,BOOLEAN,Chinese,ns=4;s=uniab|测试变量_布尔
-测试变量_整数,Demo_Int,VARIABLE,INT16,Chinese,ns=4;s=uniab|测试变量_整数
-测试变量_浮点,Demo_Float,VARIABLE,FLOAT,Chinese,ns=4;s=uniab|测试变量_浮点
-测试变量_字符串,Demo_Str,VARIABLE,STRING,Chinese,ns=4;s=uniab|测试变量_字符串
-新工站初始化,New_Station_Init,VARIABLE,BOOLEAN,Chinese,ns=4;s=uniab|新工站初始化
-新工站初始化完成,New_Station_Init_Complete,VARIABLE,BOOLEAN,Chinese,ns=4;s=uniab|新工站初始化完成

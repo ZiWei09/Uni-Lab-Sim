@@ -23,7 +23,6 @@ PLC-Sim/extracted/
 PLC-Sim/data/uploads/
 PLC-Sim/data/runtime/
 PLC-Sim/VERSION
-Modbus-Sim/packaging/vendor/
 
 # IDE / OS
 .idea/
