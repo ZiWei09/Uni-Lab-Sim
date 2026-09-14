@@ -8,13 +8,13 @@
 先在原终端用 Ctrl+C 停止占用 4855/4856 的旧 ICCAS 模拟器，再从工作区根目录运行：
 
 ```bash
-./PLC-Sim/PLC-Sim/start_iccas_process.command
+./start_iccas_process.command
 ```
 
 Windows 使用 `start_iccas_process.bat`。新入口仅启动喷雾与过滤除泡，端点仍为
 `opc.tcp://127.0.0.1:4855/iccas_sim/` 和 `opc.tcp://127.0.0.1:4856/iccas_sim/`。
 Prosys Browser 可使用原连接。新入口启用过滤扩展，预置演示配方，保存状态文件到
-`PLC-Sim/PLC-Sim/data/runtime/iccas-process-state.json`。不会自动结束其他已运行进程。
+`data/runtime/iccas-process-state.json`。不会自动结束其他已运行进程。
 
 等价 Python 命令：
 

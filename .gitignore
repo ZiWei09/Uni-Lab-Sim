@@ -8,7 +8,6 @@ __pycache__/
 .ruff_cache/
 .coverage
 htmlcov/
-PLC-Sim/docs/product_manual/_build/
 .venv/
 venv/
 build/
@@ -19,10 +18,10 @@ dist/
 .env
 *.local.json
 *.log
-PLC-Sim/extracted/
-PLC-Sim/data/uploads/
-PLC-Sim/data/runtime/
-PLC-Sim/VERSION
+extracted/
+data/uploads/
+data/runtime/
+VERSION
 
 # IDE / OS
 .idea/
@@ -30,8 +29,3 @@ PLC-Sim/VERSION
 .DS_Store
 Thumbs.db
 .WeDrive
-
-# InoProShop local/runtime files
-*.autosave
-*.opt
-~project.protect

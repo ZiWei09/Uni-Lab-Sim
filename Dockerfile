@@ -6,7 +6,7 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /opt/plc-sim
 
-COPY PLC-Sim/ /opt/plc-sim/
+COPY . /opt/plc-sim/
 RUN python -m pip install --no-cache-dir . \
     && groupadd --gid 10001 plc-sim \
     && useradd --uid 10001 --gid 10001 --no-create-home --home-dir /var/lib/plc-sim plc-sim \

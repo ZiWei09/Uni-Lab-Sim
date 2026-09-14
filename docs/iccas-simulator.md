@@ -16,7 +16,6 @@ plc-sim iccas --state-file /tmp/iccas-state.json
 源码运行：
 
 ```bash
-cd PLC-Sim
 ./start_iccas.command
 # 已有环境可直接运行：
 .venv/bin/python iccas_sim.py --state-file /tmp/iccas-state.json

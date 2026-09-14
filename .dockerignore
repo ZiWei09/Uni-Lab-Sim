@@ -4,8 +4,5 @@
 **/.pytest_cache
 **/.venv
 **/*.pyc
-PLC-Sim/tests
-PLC-Sim/packaging
-PLC-Sim/tools
-PLC-Sim/vendor
-
+tests
+tools
