@@ -1,0 +1,22 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
+const root=path.join(__dirname,'..');
+const source=fs.readFileSync(path.join(root,'gui/static/iccas-hmi.js'),'utf8').split('// BEGIN SLOT CHOICE')[1].split('// END SLOT CHOICE')[0];
+const context={};vm.createContext(context);vm.runInContext(source,context);
+const config=JSON.parse(fs.readFileSync(path.join(root,'config/iccas_devices.yaml'),'utf8'));
+function state(kind,locations,mode=0){return {online:true,actions:Object.entries(config.stations[kind].actions).map(([name,a])=>({name,...a})),values:{'实验工位选择0_AB1_A2_BPCtoPLC':mode,'ICCAS_SIM.物料位置JSON':JSON.stringify({locations,uncertain:[]})}}}
+let s=state('spray',{'rack/feed/03':'feed:03',gripper:null});
+assert.equal(context.slotChoices(s,'rack/feed/03','B工位后处理雾化').choices[0].name,'B工位原料罐库位取料');
+s.values['实验工位选择0_AB1_A2_BPCtoPLC']=1;
+assert.equal(context.slotChoices(s,'rack/feed/03','B工位后处理雾化').choices[0].name,'A工位原料罐库位取料');
+s=state('spray',{'rack/feed/03':null,gripper:'feed:03'});
+assert.equal(context.slotChoices(s,'rack/feed/03','').choices[0].name,'A工位原料罐库位放料');
+assert.equal(context.slotChoices(s,'rack/feed/04','').choices.length,0);
+s=state('filter',{'rack/beaker/08':null,gripper:'beaker:03'});
+assert.equal(context.slotChoices(s,'rack/beaker/08','').choices[0].name,'烧杯仓放料');
+assert.equal(context.slotChoices(s,'vacuum/04','').choices[0].name,'真空箱放料');
+assert.equal(context.slotChoices(s,'rack/feed/08','').choices.length,0);
+s=state('filter',{'vacuum/04':'beaker:03',gripper:null});
+assert.equal(context.slotChoices(s,'vacuum/04','').choices[0].name,'真空箱取料');
+s=state('spray',{'rack/feed/03':'feed:03',gripper:null});s.values['ICCAS_SIM.A工位后处理雾化.状态']='running';
+assert.equal(context.slotChoices(s,'rack/feed/03','A工位后处理雾化').choices[0].name,'B工位原料罐库位取料');
+console.log('9 slot-selection cases passed');
