@@ -29,12 +29,19 @@ except ImportError:
 ROOT = Path(__file__).parent
 STATIC = ROOT / "gui/static"
 MODE = "实验工位选择0_AB1_A2_BPCtoPLC"
+REAL_ENDPOINTS = {
+    "spray":  "opc.tcp://192.168.1.88:4840",   # 汇川 InovanceOpcUaServer
+    "filter": "opc.tcp://TODO_FILTER:4840",     # 过滤站真机地址待定
+}
 
 
 class Panel:
-    def __init__(self, kind, endpoint):
+    def __init__(self, kind, endpoint, *, read_only=False):
         self.kind, self.endpoint = kind, endpoint
+        self.read_only = read_only
         self.defs = {d.name_cn: d for d in definitions(kind, device_model=True)}
+        self.node_ids = {name: definition.node_id for name, definition in self.defs.items()}
+        self.layout = "simulator"
         self.actions = yaml.safe_load((ROOT / "config/iccas_devices.yaml").read_text())["stations"][kind]["actions"]
         self.lock = threading.RLock()
         self.client = None
@@ -56,7 +63,43 @@ class Panel:
         self.events.appendleft({"id": str(time.time_ns()), "time": time.strftime("%H:%M:%S"), "message": message, **details})
 
     def node(self, name):
-        return self.client.get_node(self.defs[name].node_id)
+        return self.client.get_node(self.node_ids[name])
+
+    def configure_nodes(self):
+        """Use the PLC's browsed names when connected to an Inovance controller."""
+        try:
+            children = self.client.get_node("ns=4;s=OPC").get_children()
+            actual = {node.get_browse_name().Name: node.nodeid.to_string() for node in children}
+        except Exception:
+            return
+        if not actual:
+            return
+        mapped = {}
+        for name in self.defs:
+            raw = name.removeprefix(PREFIX)
+            candidates = [raw, raw.replace(".", "_")]
+            if raw == MODE:
+                candidates.insert(0, "实验工位启用0_AB1_A2_BPCtoPLC")
+            for candidate in candidates:
+                if candidate in actual:
+                    mapped[name] = actual[candidate]
+                    break
+        if mapped:
+            self.node_ids = mapped
+            self.layout = "inovance-opc"
+
+    def synthetic_world(self):
+        """Build the occupancy-only world needed by the HMI when PLC JSON is absent."""
+        locations = {"gripper": None}
+        if self.kind == "spray":
+            for kind, label in (("feed", "原料罐"), ("reaction", "反应罐")):
+                for slot in range(1, 13):
+                    occupied = self.values.get(f"{label}料仓{slot}号位检测")
+                    locations[f"rack/{kind}/{slot:02d}"] = f"{kind}:{slot:02d}" if occupied else None
+                for lane in "AB":
+                    occupied = self.values.get(f"{lane}工位{label}工作位检测")
+                    locations[f"work/{lane}/{kind}"] = f"{kind}:work-{lane}" if occupied else None
+        return json.dumps({"locations": locations, "uncertain": []}, ensure_ascii=False)
 
     def write(self, name, value):
         data = ua.DataValue(ua.Variant(value, VTYPE_MAP[self.defs[name].data_type]))
@@ -75,25 +118,33 @@ class Panel:
         if self.client is None:
             self.client = Client(self.endpoint, timeout=2)
             self.client.connect()
-        values = self.client.get_values([self.node(name) for name in self.defs])
-        self.values = dict(zip(self.defs, values))
-        if self.values.get(PREFIX + "设备合同") != VERSION:
+            self.configure_nodes()
+        names = list(self.node_ids)
+        values = self.client.get_values([self.node(name) for name in names])
+        self.values = {name: None for name in self.defs}
+        self.values.update(zip(names, values))
+        if MODE not in self.node_ids and self.layout == "inovance-opc":
+            self.values[MODE] = None
+        if not self.values.get(PREFIX + "物料位置JSON") and self.layout == "inovance-opc":
+            self.values[PREFIX + "物料位置JSON"] = self.synthetic_world()
+        contract = self.values.get(PREFIX + "设备合同")
+        if contract is not None and contract != VERSION:
             raise ValueError("请启动 start_iccas_devices.command：此端点不是设备模式")
-        boot = self.values[PREFIX + "启动标识"]
+        boot = self.values.get(PREFIX + "启动标识")
         if self.boot and self.boot != boot:
             self.owned.clear()
             self.log("设备已重启，请核对位置和未完成命令")
         self.boot = boot
         for base in self.actions:
-            state = self.values[PREFIX + base + ".状态"]
+            state = self.values.get(PREFIX + base + ".状态")
             if self.last_states.get(base) != state:
-                if base in self.last_states or state != "idle":
+                if state is not None and (base in self.last_states or state != "idle"):
                     message = self.values[PREFIX + base + ".错误信息"]
                     self.log(f"{base} · {state}" + (f" · {message}" if message else ""),
                              action=base, state=state, code=self.values[PREFIX + base + ".错误码"], reason=message)
                 self.last_states[base] = state
             command = self.owned.get(base)
-            accepted = self.values[PREFIX + base + ".已接受命令号"]
+            accepted = self.values.get(PREFIX + base + ".已接受命令号")
             if command and state in {"complete", "error", "rejected"}:
                 # Only acknowledge the request this HMI submitted. Never replay.
                 if self.values[PREFIX + base + ".命令号"] == command and (state == "rejected" or accepted == command):
@@ -154,6 +205,8 @@ class Panel:
     def operate(self, operation, payload):
         with self.lock:
             try:
+                if self.read_only:
+                    raise ValueError("当前为真机只读监控模式，操作未发送")
                 self.require_online()
                 base = payload.get("action")
                 if operation in {"start", "cancel", "reset"} and base not in self.actions:
@@ -231,6 +284,7 @@ class Panel:
         with self.lock:
             v = self.values
             return {"kind": self.kind, "online": self.online, "error": self.error, "endpoint": self.endpoint,
+                    "read_only": self.read_only, "layout": self.layout,
                     "updated": self.updated, "values": v.copy(), "events": list(self.events),
                     "actions": [{"name": name, **config} for name, config in self.actions.items()],
                     "parameters": [{"name": name, "type": self.defs[name].data_type, "value": v.get(name)} for name in self.parameters]}
@@ -244,9 +298,10 @@ class Operation(BaseModel):
     locations: dict | None = None
 
 
-def create_app(base_port=4855):
-    panels = {kind: Panel(kind, f"opc.tcp://127.0.0.1:{base_port + offset}/iccas_sim/")
-              for kind, offset in (("spray", 0), ("filter", 1))}
+def create_app(endpoints: dict[str, str] | None = None, *, read_only=False):
+    endpoints = endpoints or {kind: f"opc.tcp://127.0.0.1:{4855 + offset}/iccas_sim/"
+                              for kind, offset in (("spray", 0), ("filter", 1))}
+    panels = {kind: Panel(kind, endpoint, read_only=read_only) for kind, endpoint in endpoints.items()}
 
     @asynccontextmanager
     async def lifespan(app):
@@ -304,9 +359,29 @@ def create_app(base_port=4855):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--port", type=int, default=18866)
-    parser.add_argument("--base-port", type=int, default=4855)
+    parser.add_argument("--mode", choices=["sim", "real"], default="sim",
+                        help="sim: 连仿真服务器；real: 连真机 OPC UA")
+    parser.add_argument("--base-port", type=int, default=4855,
+                        help="仿真模式下 OPC UA 起始端口（sim 模式有效）")
+    parser.add_argument("--spray-endpoint", default=REAL_ENDPOINTS["spray"],
+                        help="喷雾站真机地址（real 模式有效，默认 %(default)s）")
+    parser.add_argument("--filter-endpoint", default=REAL_ENDPOINTS["filter"],
+                        help="过滤站真机地址（real 模式有效，默认 %(default)s）")
+    parser.add_argument("--read-only", action="store_true",
+                        help="只读取 OPC UA 数据，禁止页面向设备写值")
     args = parser.parse_args()
-    uvicorn.run(create_app(args.base_port), host="127.0.0.1", port=args.port)
+
+    if args.mode == "real":
+        endpoints = {"spray": args.spray_endpoint}
+        if "TODO_" not in args.filter_endpoint:
+            endpoints["filter"] = args.filter_endpoint
+    else:
+        endpoints = {
+            "spray": f"opc.tcp://127.0.0.1:{args.base_port}/iccas_sim/",
+            "filter": f"opc.tcp://127.0.0.1:{args.base_port + 1}/iccas_sim/",
+        }
+
+    uvicorn.run(create_app(endpoints, read_only=args.read_only), host="127.0.0.1", port=args.port)
 
 
 if __name__ == "__main__":

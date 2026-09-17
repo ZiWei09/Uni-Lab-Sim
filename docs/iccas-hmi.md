@@ -12,6 +12,15 @@ HTML 源文件位于 `gui/static/iccas-spray.html`、`gui/static/iccas-filter.ht
 
 默认连接本机 OPC UA 4855、4856 端口。可用 `start_iccas_hmi.command --port 18867 --base-port 4855` 改变端口。服务仅监听本机。
 
+喷雾站真机只读监控使用：
+
+```bash
+./start_iccas_hmi.command --mode real --read-only \
+  --spray-endpoint opc.tcp://192.168.1.88:4840
+```
+
+真机模式会从 `ns=4;s=OPC` 浏览并映射汇川 PLC 节点；`--read-only` 会在服务端拒绝所有写入请求，页面上的启动、复位、模式和参数写入也会锁定。
+
 ## 操作
 
 - 总览显示料仓、工作位、夹爪、真空箱占用、动作通道和报警；容器图案表示占用，不表示真实液位。
