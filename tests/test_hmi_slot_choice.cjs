@@ -1,7 +1,9 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
 const root=path.join(__dirname,'..');
-const source=fs.readFileSync(path.join(root,'gui/static/iccas-hmi.js'),'utf8').split('// BEGIN SLOT CHOICE')[1].split('// END SLOT CHOICE')[0];
-const context={};vm.createContext(context);vm.runInContext(source,context);
+const script=fs.readFileSync(path.join(root,'gui/static/iccas-hmi.js'),'utf8');
+const controls=script.split('// BEGIN CONTROL RULES')[1].split('// END CONTROL RULES')[0];
+const source=script.split('// BEGIN SLOT CHOICE')[1].split('// END SLOT CHOICE')[0];
+const context={};vm.createContext(context);vm.runInContext("const P='ICCAS_SIM.';"+controls+source,context);
 const config=JSON.parse(fs.readFileSync(path.join(root,'config/iccas_devices.yaml'),'utf8'));
 function state(kind,locations,mode=0){return {online:true,actions:Object.entries(config.stations[kind].actions).map(([name,a])=>({name,...a})),values:{'实验工位选择0_AB1_A2_BPCtoPLC':mode,'ICCAS_SIM.物料位置JSON':JSON.stringify({locations,uncertain:[]})}}}
 let s=state('spray',{'rack/feed/03':'feed:03',gripper:null});

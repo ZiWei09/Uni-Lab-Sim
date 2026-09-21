@@ -29,6 +29,10 @@ except ImportError:
 ROOT = Path(__file__).parent
 STATIC = ROOT / "gui/static"
 MODE = "实验工位选择0_AB1_A2_BPCtoPLC"
+MODE_REAL = "实验工位启用0_AB1_A2_BPCtoPLC"
+REAL_CONTRACT = "接口版本"
+# Inovance PLC renames these two device-model points on the wire.
+REAL_ALIASES = {MODE: MODE_REAL, "设备合同": REAL_CONTRACT}
 REAL_ENDPOINTS = {
     "spray":  "opc.tcp://192.168.1.88:4840",   # 汇川 InovanceOpcUaServer
     "filter": "opc.tcp://TODO_FILTER:4840",     # 过滤站真机地址待定
@@ -78,8 +82,9 @@ class Panel:
         for name in self.defs:
             raw = name.removeprefix(PREFIX)
             candidates = [raw, raw.replace(".", "_")]
-            if raw == MODE:
-                candidates.insert(0, "实验工位启用0_AB1_A2_BPCtoPLC")
+            alias = REAL_ALIASES.get(raw)
+            if alias:
+                candidates.insert(0, alias)
             for candidate in candidates:
                 if candidate in actual:
                     mapped[name] = actual[candidate]
@@ -99,7 +104,25 @@ class Panel:
                 for lane in "AB":
                     occupied = self.values.get(f"{lane}工位{label}工作位检测")
                     locations[f"work/{lane}/{kind}"] = f"{kind}:work-{lane}" if occupied else None
-        return json.dumps({"locations": locations, "uncertain": []}, ensure_ascii=False)
+        return json.dumps({"locations": locations, "uncertain": [],
+                           "source": "plc-detections", "gripper_known": False}, ensure_ascii=False)
+
+    def action_state(self, base):
+        """Return the PLC state, falling back to the public handshake points."""
+        reported = self.values.get(PREFIX + base + ".状态")
+        if reported in {"idle", "running", "hang", "complete", "rejected", "error", "latched"}:
+            return reported
+        if self.values.get(PREFIX + base + ".错误码"):
+            return "error"
+        if self.values.get(base + "完成PLCtoPC"):
+            return "complete"
+        if self.values.get(PREFIX + base + ".取消"):
+            return "hang"
+        if self.values.get(base + "触发PCtoPLC"):
+            command = self.values.get(PREFIX + base + ".命令号")
+            accepted = self.values.get(PREFIX + base + ".已接受命令号")
+            return "running" if command and accepted == command else "hang"
+        return "idle"
 
     def write(self, name, value):
         data = ua.DataValue(ua.Variant(value, VTYPE_MAP[self.defs[name].data_type]))
@@ -128,7 +151,7 @@ class Panel:
         if not self.values.get(PREFIX + "物料位置JSON") and self.layout == "inovance-opc":
             self.values[PREFIX + "物料位置JSON"] = self.synthetic_world()
         contract = self.values.get(PREFIX + "设备合同")
-        if contract is not None and contract != VERSION:
+        if self.layout != "inovance-opc" and contract is not None and contract != VERSION:
             raise ValueError("请启动 start_iccas_devices.command：此端点不是设备模式")
         boot = self.values.get(PREFIX + "启动标识")
         if self.boot and self.boot != boot:
@@ -136,9 +159,9 @@ class Panel:
             self.log("设备已重启，请核对位置和未完成命令")
         self.boot = boot
         for base in self.actions:
-            state = self.values.get(PREFIX + base + ".状态")
+            state = self.action_state(base)
             if self.last_states.get(base) != state:
-                if state is not None and (base in self.last_states or state != "idle"):
+                if base in self.last_states or state != "idle":
                     message = self.values[PREFIX + base + ".错误信息"]
                     self.log(f"{base} · {state}" + (f" · {message}" if message else ""),
                              action=base, state=state, code=self.values[PREFIX + base + ".错误码"], reason=message)
@@ -250,7 +273,7 @@ class Panel:
                     self.write(PREFIX + base + ".取消", True)
                     self.log(f"已请求取消 {base}")
                 elif operation == "reset":
-                    if self.values[PREFIX + base + ".状态"] in {"running", "hang"}:
+                    if self.action_state(base) in {"running", "hang"}:
                         raise ValueError("执行中请使用取消")
                     self.write(base + "触发PCtoPLC", False)
                     self.write(PREFIX + base + ".取消", False)
@@ -266,7 +289,8 @@ class Panel:
                     request = self.values[PREFIX + "恢复已处理号"] + 1
                     if request > 2147483647:
                         raise ValueError("恢复请求号已耗尽")
-                    self.write(PREFIX + "恢复位置JSON", json.dumps(locations, ensure_ascii=False))
+                    if PREFIX + "恢复位置JSON" in self.node_ids:
+                        self.write(PREFIX + "恢复位置JSON", json.dumps(locations, ensure_ascii=False))
                     self.write(PREFIX + "恢复请求号", request)
                     self.log(f"已提交位置恢复 #{request}，等待设备核对")
                 else:
@@ -286,6 +310,7 @@ class Panel:
             return {"kind": self.kind, "online": self.online, "error": self.error, "endpoint": self.endpoint,
                     "read_only": self.read_only, "layout": self.layout,
                     "updated": self.updated, "values": v.copy(), "events": list(self.events),
+                    "action_states": {name: self.action_state(name) for name in self.actions},
                     "actions": [{"name": name, **config} for name, config in self.actions.items()],
                     "parameters": [{"name": name, "type": self.defs[name].data_type, "value": v.get(name)} for name in self.parameters]}
 

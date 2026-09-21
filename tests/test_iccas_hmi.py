@@ -71,3 +71,62 @@ def test_offline_and_disabled_lane_are_not_written():
     panel.write = lambda *args: pytest.fail('Disabled lane must not write OPC UA')
     with pytest.raises(ValueError, match='未启用'):
         panel.operate('start', {'action': base})
+
+
+def test_inovance_mapping_aliases_contract_and_mode():
+    class FakeBrowseName:
+        def __init__(self, name):
+            self.Name = name
+
+    class FakeNodeId:
+        def __init__(self, value):
+            self._value = value
+
+        def to_string(self):
+            return self._value
+
+    class FakeNode:
+        def __init__(self, name, node_id):
+            self._name = FakeBrowseName(name)
+            self.nodeid = FakeNodeId(node_id)
+
+        def get_browse_name(self):
+            return self._name
+
+    class FakeChildren:
+        def __init__(self, nodes):
+            self._nodes = nodes
+
+        def get_children(self):
+            return self._nodes
+
+    class FakeClient:
+        def get_node(self, _node_id):
+            return FakeChildren([
+                FakeNode('接口版本', 'ns=4;s=OPC|接口版本'),
+                FakeNode('实验工位启用0_AB1_A2_BPCtoPLC', 'ns=4;s=OPC|实验工位启用0_AB1_A2_BPCtoPLC'),
+            ])
+
+    panel = Panel('spray', 'opc.tcp://127.0.0.1:1/')
+    panel.client = FakeClient()
+    panel.configure_nodes()
+    assert panel.layout == 'inovance-opc'
+    assert panel.node_ids[PREFIX + '设备合同'] == 'ns=4;s=OPC|接口版本'
+    assert panel.node_ids['实验工位选择0_AB1_A2_BPCtoPLC'] == 'ns=4;s=OPC|实验工位启用0_AB1_A2_BPCtoPLC'
+
+
+def test_inovance_recovery_skips_missing_json_payload():
+    panel = Panel('spray', 'opc.tcp://127.0.0.1:1/')
+    panel.layout = 'inovance-opc'
+    panel.node_ids = {name: node_id for name, node_id in panel.node_ids.items()
+                      if PREFIX + '恢复位置JSON' not in name}
+    panel.online = True
+    panel.refresh = lambda: None
+    panel.values = {PREFIX + '设备忙碌': False, PREFIX + '恢复已处理号': 0}
+    for base in panel.actions:
+        panel.values[base + '触发PCtoPLC'] = False
+        panel.values[PREFIX + base + '.取消'] = False
+    writes = []
+    panel.write = lambda name, value: writes.append((name, value))
+    panel.operate('recover', {'locations': {'gripper': None}})
+    assert writes == [(PREFIX + '恢复请求号', 1)]

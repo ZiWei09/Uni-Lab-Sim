@@ -1,0 +1,27 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
+const root=path.join(__dirname,'..');
+const body=fs.readFileSync(path.join(root,'gui/static/iccas-hmi.js'),'utf8').split('// BEGIN CONTROL RULES')[1].split('// END CONTROL RULES')[0];
+const context={};vm.createContext(context);vm.runInContext("const P='ICCAS_SIM.';"+body,context);
+const base='A工位后处理雾化';
+function state(overrides={}){return {online:true,read_only:false,values:{['ICCAS_SIM.需要恢复']:false,[base+'触发PCtoPLC']:false,['ICCAS_SIM.'+base+'.状态']:null},...overrides}}
+assert.equal(context.canStartAction(state(),base),true,'调试阶段应允许空状态启动');
+assert.equal(context.canStartAction(state({values:{['ICCAS_SIM.需要恢复']:false,[base+'触发PCtoPLC']:false,['ICCAS_SIM.'+base+'.状态']:'running'}}),base),true,'启动按钮暂不依赖状态点');
+assert.equal(context.canStartAction(state({read_only:true}),base),false);
+assert.equal(context.canStartAction(state({online:false}),base),false);
+assert.equal(context.canStartAction(state(),base,1),false);
+assert.equal(context.canStartAction(state(),base,0,true),false);
+assert.equal(context.canStartAction(state({values:{['ICCAS_SIM.需要恢复']:true,[base+'触发PCtoPLC']:false}}),base),false);
+assert.equal(context.canStartAction(state({values:{['ICCAS_SIM.需要恢复']:false,[base+'触发PCtoPLC']:true}}),base),false);
+assert.equal(context.canStartAction(state(),''),false);
+assert.equal(context.actionPhase(state(),base),'idle');
+let s=state();s.values[base+'触发PCtoPLC']=true;s.values['ICCAS_SIM.'+base+'.命令号']=1;s.values['ICCAS_SIM.'+base+'.已接受命令号']=0;
+assert.equal(context.actionPhase(s,base),'hang');
+s.values['ICCAS_SIM.'+base+'.已接受命令号']=1;
+assert.equal(context.actionPhase(s,base),'running');
+s.values[base+'完成PLCtoPC']=true;
+assert.equal(context.actionPhase(s,base),'complete');
+s=state({actions:[{name:base,move:['rack/reaction/{slot}','gripper']} ]});s.values[base+'触发PCtoPLC']=true;s.values[base+'完成PLCtoPC']=false;
+assert.deepEqual(Array.from(context.activeTransportActions(s),a=>a.name),[base]);
+s.values[base+'完成PLCtoPC']=true;
+assert.equal(context.activeTransportActions(s).length,0);
+console.log('15 HMI control and state cases passed');
