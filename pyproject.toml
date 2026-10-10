@@ -36,6 +36,8 @@ include-package-data = false
 plc_sim = [
   "config/*.yaml",
   "data/*.csv",
+  "data/current/*.csv",
+  "data/current/*.json",
 ]
 "plc_sim.gui" = ["static/*.html", "static/*.css", "static/*.js", "static/*.png", "static/*.ico"]
 

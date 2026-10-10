@@ -1,0 +1,241 @@
+{
+  "version": 1,
+  "stations": {
+    "filter": {
+      "actions": {
+        "原料罐仓取料": {
+          "locks": [
+            "filter",
+            "robot"
+          ],
+          "move": [
+            "rack/feed/{slot}",
+            "gripper"
+          ],
+          "parameter": "原料罐仓取放号码PCtoPLC"
+        },
+        "原料罐工作位放料": {
+          "locks": [
+            "filter",
+            "robot"
+          ],
+          "move": [
+            "gripper",
+            "work/feed"
+          ]
+        },
+        "原料罐工作位取料": {
+          "locks": [
+            "filter",
+            "robot"
+          ],
+          "move": [
+            "work/feed",
+            "gripper"
+          ]
+        },
+        "原料罐仓放料": {
+          "locks": [
+            "filter",
+            "robot"
+          ],
+          "move": [
+            "gripper",
+            "rack/feed/{slot}"
+          ],
+          "parameter": "原料罐仓取放号码PCtoPLC"
+        },
+        "过滤罐仓取料": {
+          "locks": [
+            "filter",
+            "robot"
+          ],
+          "move": [
+            "rack/filter/{slot}",
+            "gripper"
+          ],
+          "parameter": "过滤罐仓取放号码PCtoPLC"
+        },
+        "过滤罐工作位放料": {
+          "locks": [
+            "filter",
+            "robot"
+          ],
+          "move": [
+            "gripper",
+            "work/filter"
+          ]
+        },
+        "过滤罐工作位取料": {
+          "locks": [
+            "filter",
+            "robot"
+          ],
+          "move": [
+            "work/filter",
+            "gripper"
+          ]
+        },
+        "过滤罐仓放料": {
+          "locks": [
+            "filter",
+            "robot"
+          ],
+          "move": [
+            "gripper",
+            "rack/filter/{slot}"
+          ],
+          "parameter": "过滤罐仓取放号码PCtoPLC"
+        },
+        "烧杯仓空烧杯取料": {
+          "locks": [
+            "filter",
+            "robot"
+          ],
+          "move": [
+            "rack/beaker/{slot}",
+            "gripper"
+          ],
+          "parameter": "烧杯仓取空烧杯号码PCtoPLC"
+        },
+        "烧杯工作位放料": {
+          "locks": [
+            "filter",
+            "robot"
+          ],
+          "move": [
+            "gripper",
+            "work/beaker"
+          ]
+        },
+        "烧杯工作位取料": {
+          "locks": [
+            "filter",
+            "robot"
+          ],
+          "move": [
+            "work/beaker",
+            "gripper"
+          ]
+        },
+        "烧杯仓未除泡烧杯放料": {
+          "locks": [
+            "filter",
+            "robot"
+          ],
+          "move": [
+            "gripper",
+            "rack/beaker/{slot}"
+          ],
+          "parameter": "烧杯仓放未除泡烧杯号码PCtoPLC"
+        },
+        "烧杯仓未除泡烧杯取料": {
+          "locks": [
+            "filter",
+            "robot"
+          ],
+          "move": [
+            "rack/beaker/{slot}",
+            "gripper"
+          ],
+          "parameter": "烧杯仓取未除泡烧杯号码PCtoPLC"
+        },
+        "真空箱未除泡烧杯放料": {
+          "locks": [
+            "robot",
+            "vacuum"
+          ],
+          "move": [
+            "gripper",
+            "vacuum/{slot}"
+          ],
+          "parameter": "真空箱放未除泡烧杯号码PCtoPLC"
+        },
+        "真空箱已除泡烧杯取料": {
+          "locks": [
+            "robot",
+            "vacuum"
+          ],
+          "move": [
+            "vacuum/{slot}",
+            "gripper"
+          ],
+          "parameter": "真空箱仓取已除泡烧杯号码PCtoPLC"
+        },
+        "烧杯仓已除泡烧杯放料": {
+          "locks": [
+            "filter",
+            "robot"
+          ],
+          "move": [
+            "gripper",
+            "rack/beaker/{slot}"
+          ],
+          "parameter": "烧杯仓放已除泡烧杯号码PCtoPLC"
+        },
+        "抽原液启动": {
+          "locks": [
+            "filter",
+            "robot"
+          ],
+          "requires": [
+            "work/feed",
+            "work/filter",
+            "work/beaker"
+          ],
+          "effect": "filtered",
+          "result_site": "work/beaker"
+        },
+        "原液过滤启动": {
+          "locks": [
+            "filter",
+            "robot"
+          ],
+          "requires": [
+            "work/feed",
+            "work/filter",
+            "work/beaker"
+          ],
+          "effect": "filtered",
+          "result_site": "work/beaker"
+        },
+        "吸液针外壁清洗": {
+          "locks": [
+            "filter",
+            "robot"
+          ],
+          "requires": []
+        },
+        "吸液针清洗罐清洗": {
+          "locks": [
+            "filter",
+            "robot"
+          ],
+          "requires": []
+        },
+        "原液管清洗回收罐清洗": {
+          "locks": [
+            "filter",
+            "robot"
+          ],
+          "requires": []
+        },
+        "过滤罐清洗": {
+          "locks": [
+            "filter",
+            "robot"
+          ],
+          "requires": []
+        },
+        "真空箱除泡启动": {
+          "locks": [
+            "vacuum"
+          ],
+          "requires": [],
+          "vacuum_batch": true,
+          "effect": "defoamed"
+        }
+      }
+    }
+  }
+}

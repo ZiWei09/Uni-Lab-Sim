@@ -323,6 +323,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--station", choices=["all", "postprocessing", "spray", "filter", "synthesis", "body"] +
                         [f"reaction_{i}" for i in range(1, 6)], default="all")
+    parser.add_argument("--contract", choices=["legacy", "current"], default="legacy", help="current 使用当前真机点表与握手协议")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--base-port", type=int, default=4855)
     parser.add_argument("--delay", type=float, default=0.5, help="fallback action duration in seconds")
@@ -351,6 +352,12 @@ def main():
         parser.error("--device-model requires --device-state-dir")
     if not math.isfinite(args.watchdog_seconds) or args.watchdog_seconds <= 0:
         parser.error("watchdog-seconds must be finite and positive")
+    if args.contract == "current":
+        try:
+            from .current_contract import run
+        except ImportError:  # 直接执行源码入口。
+            from current_contract import run
+        return run(args)
     specs = topology(args.station, args.base_port)
     if args.list:
         for name, kind, port, number in specs:

@@ -9,6 +9,19 @@
 
 macOS/Linux 启动器会自动创建 `.venv` 并安装依赖。Windows 可先运行 `setup_venv.bat`。
 
+## 当前设备包协议
+
+对接当前 ICCAS 设备包时，使用真实点表模式：
+
+```bash
+python iccas_sim.py --contract current --station postprocessing --base-port 4855 \
+  --delay 0.4 --device-state-dir /tmp/iccas-current --state-file /tmp/iccas-current.json
+```
+
+该模式从 `data/current/` 读取 326 个喷雾节点和 176 个过滤除泡节点。喷雾使用命令号握手；过滤除泡使用 PLC 复位 Trigger、锁存 Complete 的协议，完成位置变更和锁释放后才发布 Complete。不会暴露旧 `ICCAS_SIM` 扩展点。状态目录必须独立于旧模式；动作延迟仅用于协议验证，不等价于工艺耗时。当前模式不兼容下方旧 HMI/工艺计时启动器。
+
+`--fault-file` 沿用按站名、Trigger 名配置的 hang/reject/error 注入。具体原因保留在状态快照；过滤站没有通用错误节点，模型以现有 NMP 空桶报警位表示注入或互锁故障。该位只用于测试驱动中断，不表示仿真实际计算了 NMP 耗尽。
+
 ## 后处理双站设备模式
 
 在仓库根目录运行：

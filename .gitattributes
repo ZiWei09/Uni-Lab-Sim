@@ -12,3 +12,6 @@
 *.js text eol=lf
 *.css text eol=lf
 *.html text eol=lf
+
+# 保留权威点表字节，避免跨平台换行转换破坏同步校验。
+data/current/*.csv -text
